@@ -5,7 +5,7 @@ let userAnswer = 0;
 let globalScore = 0;
 let maxFalafelCount = 10;
 let fallenFalafelCount = 0;
-
+let gameStopped = false;
 
 class ArithmeticQuestion {
     constructor(operand1, operand2, operator) {
@@ -39,8 +39,8 @@ class ArithmeticQuestion {
       }
 }
 
-  class FallingItem {
-    constructor() {
+class FallingItem {
+  constructor() {
       this.element = document.createElement('div');
       this.element.classList.add('falling-item');
       this.element.addEventListener('click', this.stopFalling.bind(this));
@@ -54,7 +54,7 @@ class ArithmeticQuestion {
       this.startFalling();
       // this.showWinScreen();
       // this.hideWinScreen();
-    }
+  }
     
   showWinScreen() {
     //winMessage.textContent = "Congratulations! You won!";
@@ -68,7 +68,9 @@ class ArithmeticQuestion {
   
   showLostScreen() {
     this.lostScreen.style.display = "flex";
-    this.startOverButton.style.display = "flex";
+    // this.startOverButton.style.display = "flex";
+    startOverButton.addEventListener("click", this.startOver.bind(this));
+
   }
 
   hideLostScreen() {
@@ -81,7 +83,7 @@ class ArithmeticQuestion {
     this.hideLostScreen();
   }
 
-    generateQuestion() {
+  generateQuestion() {
       const operand1 = Math.floor(Math.random() * 10) + 1;
       const operand2 = Math.floor(Math.random() * 10) + 1;
       const operators = ['+', '-', '*', '/'];
@@ -90,16 +92,16 @@ class ArithmeticQuestion {
       return new ArithmeticQuestion(operand1, operand2, operator);
     }
   
-    displayQuestion() {
-      this.element.textContent = this.question.displayQuestion();
-    }
+  displayQuestion() {
+    this.element.textContent = this.question.displayQuestion();
+  }
   
-    startFalling() {
-      this.setPosition();
-      this.element.style.animation = 'falling-animation 15s linear forwards';
-    }
+  startFalling() {
+    this.setPosition();
+    this.element.style.animation = 'falling-animation 15s linear forwards';
+  }
   
-    setPosition() {
+  setPosition() {
       const containerWidth = document.querySelector('.game-container').offsetWidth;
       const containerHeight = document.querySelector('.game-container').offsetHeight;
   
@@ -108,23 +110,29 @@ class ArithmeticQuestion {
   
       this.element.style.left = randomX + 'px';
       this.element.style.top = randomY + 'px';
-    }
+  }
   
-    updateScore(scoreChange) {
-
+  updateScore(scoreChange) {
+    if (!gameStopped){
        globalScore += scoreChange;
-    
-      scoreElement.textContent = `Score: ${globalScore} / ${maxFalafelCount}`;
+       scoreElement.textContent = `Score: ${globalScore} / ${maxFalafelCount}`;
 
       if (scoreChange < 0) {
         fallenFalafelCount++;
         
-        if (fallenFalafelCount >= maxFalafelCount) {
-          this.removeFalling();
-          this.showLostScreen();
-        }
+          if (fallenFalafelCount >= maxFalafelCount) {
+            this.stopGame();
+            //this.removeFalling();
+            this.showLostScreen();
+          }
       }
     }
+  }
+
+    
+  stopGame() {
+    gameStopped = true;
+  }
 
     removeFalling() {
       this.element.remove();
@@ -144,7 +152,7 @@ class ArithmeticQuestion {
       } else {
         // Incorrect answer
         this.element.classList.add('incorrect-answer');
-        this.element.classList.remove('hiddem');
+        //this.element.classList.remove('hiddeמ');
         this.updateScore(-1); // Decrement score by 1 for incorrect answer
         console.log(this.score);
 
@@ -162,17 +170,26 @@ class ArithmeticQuestion {
         this.hideLostScreen();
       } 
     }
+
+  startOver() {
+    fallenFalafelCount = 0;
+    globalScore = 0;
+    scoreElement.textContent = `Score: ${globalScore} / ${maxFalafelCount}`;
+    lostScreen.style.display = "none";
+    gameStopped = false;
+  }
 }
-    startOverButton.addEventListener("click", () => {
-      const fallingItems = document.querySelectorAll(".falling-item");
-      fallingItems.forEach((item) => item.remove());
-      new FallingItem(); 
-  });
+  //   startOverButton.addEventListener("click", () => {
+  //     const fallingItems = document.querySelectorAll(".falling-item");
+  //     fallingItems.forEach((item) => item.remove());
+  //     new FallingItem(); 
+  // });
 
   
   setInterval(() => {
-    if (globalScore < maxFalafelCount){
+    if (!gameStopped && globalScore < maxFalafelCount){
     new FallingItem();
     }
   }, 1500);
+  
   
